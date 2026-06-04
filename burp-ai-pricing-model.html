@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Burp AI in DAST — Value-based pricing model</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ps-navy: #1c1f2e;
+  --ps-white: #ffffff;
+  --ps-charcoal: #3a3d4a;
+  --ps-mid-grey: #b0b5c8;
+  --ps-orange: #e8571c;
+  --ps-blue: #1e52d4;
+  --ps-teal: #0b6b78;
+  --ps-crimson: #e02d4a;
+  --ps-purple: #5e35b0;
+  --ps-deep: #0d1530;
+  --ps-text-muted: #4a4d5e;
+  --ps-orange-text: #b5400f;
+  --ps-teal-text: #064750;
+  --ps-crimson-text: #9e1c2f;
+  --ps-border: #c5c8d4;
+  --ps-bg: #f4f5f7;
+  --ps-surface: #f0f1f5;
+  --ps-focus: #1e52d4;
+  --font-main: 'Inter', 'Helvetica Neue', 'Segoe UI', Arial, sans-serif;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--font-main);
+  background: var(--ps-bg);
+  color: var(--ps-charcoal);
+  line-height: 1.6;
+  font-size: 16px;
+}
+
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focus-visible {
+  outline: 3px solid var(--ps-focus);
+  outline-offset: 2px;
+}
+
+.skip-link {
+  position: absolute; left: -9999px; top: 0;
+  background: var(--ps-navy); color: var(--ps-white);
+  padding: 0.75rem 1.5rem; font-size: 14px; font-weight: 600;
+  z-index: 100; text-decoration: none; border-radius: 0 0 6px 0;
+}
+.skip-link:focus { left: 0; }
+
+header {
+  background: var(--ps-navy);
+  padding: 2.5rem 2rem 2rem;
+}
+.header-inner { max-width: 1120px; margin: 0 auto; }
+header h1 { color: var(--ps-white); font-size: 28px; font-weight: 700; margin-bottom: 6px; }
+header h1 span { color: #e8571c; }
+header p { color: #d0d4e4; font-size: 15px; max-width: 640px; line-height: 1.6; margin-bottom: 1.5rem; }
+
+.tab-bar-outer {
+  background: var(--ps-white);
+  border-bottom: 2px solid var(--ps-border);
+}
+
+.tab-bar {
+  display: flex;
+  gap: 0;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.tab-btn {
+  font-family: var(--font-main);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ps-text-muted);
+  background: transparent;
+  border: none;
+  padding: 0.875rem 1.5rem;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.tab-btn:hover { color: var(--ps-navy); }
+
+.tab-btn.active {
+  color: var(--ps-navy);
+  border-bottom-color: #e8571c;
+}
+
+.tab-btn:focus-visible {
+  outline: 3px solid var(--ps-focus);
+  outline-offset: -2px;
+}
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+main { max-width: 1120px; margin: 0 auto; padding: 2rem; }
+
+.section {
+  background: var(--ps-white); border-radius: 10px;
+  padding: 1.75rem; margin-bottom: 1.25rem;
+}
+
+.section h2 {
+  font-size: 16px; font-weight: 600; color: var(--ps-navy);
+  margin-bottom: 1.25rem; display: flex; align-items: center; gap: 8px;
+}
+.section h2 .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #e8571c; flex-shrink: 0;
+}
+
+.seg-selector {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 12px; margin-bottom: 1rem;
+}
+
+.seg-option {
+  background: var(--ps-surface); border: 2px solid transparent;
+  border-radius: 8px; padding: 1rem 1.25rem; cursor: pointer;
+  transition: border-color 0.15s; text-align: left;
+}
+.seg-option:hover { border-color: var(--ps-border); }
+.seg-option.active { border-color: #e8571c; }
+.seg-option:focus-visible { outline: 3px solid var(--ps-focus); outline-offset: 2px; }
+.seg-option-name { font-size: 15px; font-weight: 600; color: var(--ps-navy); margin-bottom: 4px; }
+.seg-option-desc { font-size: 13px; color: var(--ps-text-muted); line-height: 1.5; }
+
+.field-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+.field-group { display: flex; flex-direction: column; gap: 6px; }
+.field-label { font-size: 14px; color: var(--ps-charcoal); font-weight: 500; }
+.field-input-wrap {
+  display: flex; align-items: center; background: var(--ps-surface);
+  border: 2px solid var(--ps-border); border-radius: 6px; overflow: hidden;
+  transition: border-color 0.15s;
+}
+.field-input-wrap:focus-within { border-color: var(--ps-focus); }
+.field-prefix { padding: 0 0 0 12px; font-size: 15px; font-weight: 600; color: var(--ps-text-muted); pointer-events: none; }
+.field-input-wrap input[type="number"] {
+  border: none; background: transparent; font-family: var(--font-main);
+  font-size: 15px; font-weight: 600; color: var(--ps-navy);
+  padding: 10px 12px 10px 4px; width: 100%; outline: none; -moz-appearance: textfield;
+}
+.field-input-wrap input[type="number"]::-webkit-inner-spin-button,
+.field-input-wrap input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
+.recommendation-section { border: 2px solid #e8571c; }
+.rec-hero { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: stretch; }
+.rec-price-block { text-align: center; padding: 1.5rem 1rem; background: var(--ps-surface); border-radius: 8px; display: flex; flex-direction: column; justify-content: center; }
+.rec-price-label { font-size: 13px; font-weight: 600; color: var(--ps-text-muted); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 8px; }
+.rec-price-val { font-size: 40px; font-weight: 800; color: #e8571c; line-height: 1.1; }
+.rec-price-sub { font-size: 14px; color: var(--ps-text-muted); margin-top: 6px; }
+.rec-rationale { font-size: 14px; color: var(--ps-charcoal); line-height: 1.7; }
+.rec-rationale p { margin-bottom: 0.5rem; }
+.rec-rationale strong { color: var(--ps-navy); }
+.rec-mini-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 1rem; }
+.rec-mini-stat { background: var(--ps-surface); border-radius: 6px; padding: 0.6rem 0.75rem; }
+.rec-mini-label { font-size: 11px; color: var(--ps-text-muted); text-transform: uppercase; letter-spacing: 0.3px; font-weight: 600; margin-bottom: 2px; }
+.rec-mini-val { font-size: 16px; font-weight: 700; color: var(--ps-navy); }
+
+.value-story { background: var(--ps-surface); border-radius: 8px; padding: 1.25rem; margin-top: 1rem; font-size: 14px; color: var(--ps-charcoal); line-height: 1.7; }
+.value-story strong { color: var(--ps-navy); }
+
+.metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 1.25rem; }
+.metric { background: var(--ps-surface); border-radius: 8px; padding: 1rem; }
+.metric-label { font-size: 12px; color: var(--ps-text-muted); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 600; margin-bottom: 4px; }
+.metric-val { font-size: 24px; font-weight: 700; color: var(--ps-navy); }
+.metric-val.orange { color: var(--ps-orange-text); }
+.metric-val.teal { color: var(--ps-teal-text); }
+.metric-sub { font-size: 13px; color: var(--ps-text-muted); margin-top: 4px; line-height: 1.5; }
+.margin-bar { height: 6px; border-radius: 3px; margin-top: 8px; transition: width 0.2s, background 0.2s; }
+.margin-tag { display: inline-block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; padding: 2px 6px; border-radius: 3px; margin-left: 6px; vertical-align: middle; }
+
+.sliders { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem 2.5rem; }
+.slider-group { display: flex; flex-direction: column; gap: 6px; }
+.slider-group label { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; color: var(--ps-charcoal); font-weight: 500; }
+.slider-val { font-weight: 700; color: var(--ps-navy); font-size: 14px; min-width: 48px; text-align: right; }
+
+input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 3px; background: var(--ps-border); cursor: pointer; }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 22px; height: 22px; border-radius: 50%; background: #e8571c; cursor: pointer; border: 3px solid var(--ps-white); box-shadow: 0 1px 4px rgba(0,0,0,0.25); }
+input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: #e8571c; cursor: pointer; border: 3px solid var(--ps-white); box-shadow: 0 1px 4px rgba(0,0,0,0.25); }
+input[type="range"]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px var(--ps-focus); }
+input[type="range"]:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3px var(--ps-focus); }
+
+.be-insight { background: var(--ps-surface); border-left: 4px solid #e8571c; border-radius: 0 8px 8px 0; padding: 1rem 1.25rem; margin-top: 1rem; font-size: 14px; color: var(--ps-charcoal); line-height: 1.6; }
+
+.internal-badge { display: inline-block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; background: #fce8eb; color: #e02d4a; padding: 3px 8px; border-radius: 4px; margin-left: 8px; vertical-align: middle; }
+
+footer { text-align: center; padding: 1.5rem 2rem 2.5rem; font-size: 13px; color: var(--ps-text-muted); max-width: 800px; margin: 0 auto; line-height: 1.6; }
+
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+.how-section { background: var(--ps-white); border-radius: 10px; padding: 2rem; margin-bottom: 1.25rem; }
+.how-section h2 { font-size: 20px; font-weight: 700; color: var(--ps-navy); margin-bottom: 1rem; }
+.how-section h3 { font-size: 16px; font-weight: 600; color: var(--ps-navy); margin: 1.75rem 0 0.75rem; }
+.how-section p { font-size: 15px; color: var(--ps-charcoal); line-height: 1.7; margin-bottom: 0.75rem; }
+.how-section strong { color: var(--ps-navy); }
+.how-formula { background: var(--ps-surface); border-radius: 8px; padding: 1.25rem; font-family: 'Inter', monospace; font-size: 14px; color: var(--ps-navy); line-height: 1.8; margin: 1rem 0; }
+.how-formula .label { color: var(--ps-text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px; font-weight: 600; display: block; margin-bottom: 4px; }
+.how-table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 1rem 0; }
+.how-table th { text-align: left; font-weight: 600; color: var(--ps-text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px; padding: 8px 12px; border-bottom: 2px solid var(--ps-border); }
+.how-table td { padding: 8px 12px; border-bottom: 1px solid var(--ps-surface); color: var(--ps-charcoal); }
+.how-table td:first-child { font-weight: 600; color: var(--ps-navy); }
+.how-callout { background: var(--ps-surface); border-left: 4px solid #e8571c; border-radius: 0 8px 8px 0; padding: 1rem 1.25rem; margin: 1rem 0; font-size: 14px; line-height: 1.6; }
+.how-step-num { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: #e8571c; color: var(--ps-white); font-size: 14px; font-weight: 700; margin-right: 8px; flex-shrink: 0; vertical-align: middle; }
+
+@media (max-width: 768px) {
+  .seg-selector { grid-template-columns: 1fr; }
+  .sliders { grid-template-columns: 1fr; }
+  .metric-grid { grid-template-columns: 1fr; }
+  .field-grid { grid-template-columns: 1fr; }
+  .rec-hero { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .margin-bar { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<a href="#main-content" class="skip-link">Skip to main content</a>
+
+<header role="banner">
+  <div class="header-inner">
+    <h1>Burp <span>AI</span> in DAST — Pricing model</h1>
+    <p>Select the customer segment, enter the deal specifics, and get a recommended AI price with the value story to support it.</p>
+  </div>
+
+</header>
+
+<div class="tab-bar-outer">
+  <nav class="tab-bar" role="tablist" aria-label="Main sections">
+    <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="tab-calculator" id="btn-calculator" tabindex="0">Calculator</button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-howworks" id="btn-howworks" tabindex="-1">How it works</button>
+  </nav>
+</div>
+
+<div id="tab-calculator" class="tab-panel active" role="tabpanel" aria-labelledby="btn-calculator">
+<main id="main-content">
+
+  <section class="section" aria-labelledby="sec-segment">
+    <h2 id="sec-segment"><span class="dot" aria-hidden="true"></span>Customer segment</h2>
+    <div class="seg-selector" role="radiogroup" aria-label="Select customer segment">
+      <button class="seg-option active" role="radio" aria-checked="true" data-seg="small" tabindex="0">
+        <div class="seg-option-name">Small team</div>
+        <div class="seg-option-desc">1-5 security engineers, limited DAST adoption, pen-test driven. Triage is a side task.</div>
+      </button>
+      <button class="seg-option" role="radio" aria-checked="false" data-seg="enterprise" tabindex="0">
+        <div class="seg-option-name">Enterprise</div>
+        <div class="seg-option-desc">Dedicated AppSec team, continuous scanning, large scope. False positive noise is the primary pain.</div>
+      </button>
+      <button class="seg-option" role="radio" aria-checked="false" data-seg="mssp" tabindex="0">
+        <div class="seg-option-name">MSSP / consultancy</div>
+        <div class="seg-option-desc">Pen-testing-as-a-service, multi-client scanning. Volume is high, margin on validation is thin.</div>
+      </button>
+    </div>
+
+    <div style="margin-top:1.25rem;">
+      <label for="region" style="font-size:14px;font-weight:500;color:var(--ps-charcoal);display:block;margin-bottom:6px;">Customer region</label>
+      <select id="region" style="font-family:var(--font-main);font-size:15px;font-weight:600;color:var(--ps-navy);background:var(--ps-surface);border:2px solid var(--ps-border);border-radius:6px;padding:10px 14px;width:100%;max-width:560px;cursor:pointer;">
+        <option value="NA">North America — $130k avg salary (394 accounts)</option>
+        <option value="Europe">Europe — $80k avg salary (170 accounts)</option>
+        <option value="APAC_HI">APAC High cost (AU, JP, NZ, HK, SG, KR) — $88k avg salary (28 accounts)</option>
+        <option value="APAC_LO">APAC Low cost (IN, ID, MY, TH, BD + others) — $14k avg salary (40 accounts)</option>
+        <option value="ME">Middle East — $65k avg salary (24 accounts)</option>
+        <option value="LATAM">Latin America — $38k avg salary (13 accounts)</option>
+      </select>
+    </div>
+
+    <div style="margin-top:1.5rem; border-top:1px solid #e8e9ee; padding-top:1.25rem;">
+      <h3 style="font-size:14px;font-weight:600;color:var(--ps-navy);margin-bottom:1rem;">Assumptions<span class="internal-badge">Internal only</span></h3>
+      <p style="font-size:13px;color:var(--ps-text-muted);margin-bottom:1rem;">Pre-filled from the segment and region above. Adjust if you know the account well enough to override.</p>
+      <div class="sliders">
+        <div class="slider-group">
+          <label for="issues"><span>Issues triaged per week</span><span class="slider-val" id="issues-out" aria-hidden="true">8</span></label>
+          <input type="range" min="2" max="60" value="8" step="1" id="issues">
+        </div>
+        <div class="slider-group">
+          <label for="hours"><span>Hours per issue (manual triage)</span><span class="slider-val" id="hours-out" aria-hidden="true">1.5</span></label>
+          <input type="range" min="0.5" max="4" value="1.5" step="0.5" id="hours">
+        </div>
+        <div class="slider-group">
+          <label for="saved"><span>% time saved per issue with AI</span><span class="slider-val" id="saved-out" aria-hidden="true">30%</span></label>
+          <input type="range" min="10" max="70" value="30" step="5" id="saved">
+        </div>
+        <div class="slider-group">
+          <label for="salary"><span>Annual salary (security engineer)</span><span class="slider-val" id="salary-out" aria-hidden="true">$130,000</span></label>
+          <input type="range" min="5000" max="250000" value="130000" step="5000" id="salary">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="sec-deal">
+    <h2 id="sec-deal"><span class="dot" aria-hidden="true"></span>Deal inputs <a href="https://portswigger.thoughtspot.cloud/#/insights/pinboard/5c44468a-7019-4456-80ef-2b5c60dab932/tab/7f021cad-c528-4476-ad5c-7d2b036bc837" target="_blank" rel="noopener" style="font-size:13px;font-weight:600;color:var(--ps-blue);text-decoration:none;margin-left:8px;">ThoughtSpot &#8599;</a></h2>
+    <p style="font-size:12px;color:var(--ps-text-muted);margin:-1rem 0 1rem;">Use ThoughtSpot to look up avg and p90 cost per investigation for this customer. Link will be updated to a DAST-specific liveboard once ready.</p>
+    <div class="field-grid">
+      <div class="field-group">
+        <label class="field-label" for="base">DAST base price ($/yr)</label>
+        <div class="field-input-wrap"><span class="field-prefix" aria-hidden="true">$</span><input type="number" id="base" value="28587" min="0" step="1" aria-label="DAST base price in dollars per year"></div>
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="costAvg">Avg cost per investigation</label>
+        <div class="field-input-wrap"><span class="field-prefix" aria-hidden="true">$</span><input type="number" id="costAvg" value="0.86" min="0" step="0.01" aria-label="Average cost per investigation in dollars"></div>
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="costP90">p90 cost per investigation</label>
+        <div class="field-input-wrap"><span class="field-prefix" aria-hidden="true">$</span><input type="number" id="costP90" value="1.97" min="0" step="0.01" aria-label="90th percentile cost per investigation in dollars"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section recommendation-section" aria-labelledby="sec-recommend">
+    <h2 id="sec-recommend"><span class="dot" aria-hidden="true"></span>Recommended AI price</h2>
+    <div id="recommend-hero" role="region" aria-live="polite" aria-label="Recommended price"></div>
+  </section>
+
+  <section class="section" aria-labelledby="sec-swigportal">
+    <h2 id="sec-swigportal"><span class="dot" aria-hidden="true"></span>SwigPortal setup</h2>
+    <p style="font-size:13px;color:var(--ps-text-muted);margin-bottom:1rem;">Enter these values when enabling AI features for this account. Credit cap is derived from the recommended price at $5 per 10,000 credits.</p>
+    <div class="metric-grid" id="swigportal-cards" role="region" aria-live="polite" aria-label="SwigPortal credit setup"></div>
+  </section>
+
+  <section class="section" aria-labelledby="sec-internal">
+    <h2 id="sec-internal"><span class="dot" aria-hidden="true"></span>Internal economics<span class="internal-badge">Internal only</span></h2>
+    <div class="metric-grid" id="top-cards" role="region" aria-live="polite" aria-label="Value and cost calculations"></div>
+    <div style="margin-top:1.25rem;">
+      <h3 style="font-size:14px;font-weight:600;color:var(--ps-navy);margin-bottom:0.75rem;">Price scenarios compared</h3>
+      <div class="metric-grid" id="pricing-cards" role="region" aria-live="polite" aria-label="Pricing scenario comparisons"></div>
+    </div>
+    <div style="margin-top:1.25rem;">
+      <h3 style="font-size:14px;font-weight:600;color:var(--ps-navy);margin-bottom:0.5rem;">Binding constraint by region</h3>
+      <p style="font-size:13px;color:var(--ps-text-muted, #4a4d5e);margin-bottom:0.5rem;">Shows what drives the recommended price in each region for the current segment. Ceiling = capped by willingness to pay. Cost floor = capped by margin protection. Value = price set purely by value created.</p>
+      <div id="region-summary" role="region" aria-live="polite" aria-label="Binding constraint by region"></div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="sec-story">
+    <h2 id="sec-story"><span class="dot" aria-hidden="true"></span>Value story for the customer</h2>
+    <div id="value-story" class="value-story" role="region" aria-live="polite"></div>
+  </section>
+
+  <section class="section" aria-labelledby="sec-breakeven">
+    <h2 id="sec-breakeven"><span class="dot" aria-hidden="true"></span>Break-even analysis<span class="internal-badge">Internal only</span></h2>
+    <div class="metric-grid" id="be-cards" role="region" aria-live="polite" aria-label="Break-even calculations"></div>
+    <div class="be-insight" id="be-insight" role="status" aria-live="polite"></div>
+  </section>
+
+</main>
+</div>
+
+<div id="tab-howworks" class="tab-panel" role="tabpanel" aria-labelledby="btn-howworks">
+<div style="max-width:1120px;margin:0 auto;padding:2rem;">
+
+  <div class="how-section">
+    <h2>How the pricing calculator works</h2>
+    <p>This tool uses <strong>value-based pricing</strong> — the recommended price is derived from the economic value AI creates for the customer, not from our cost to deliver it. The cost side sets a floor to protect margin, but the price is anchored to what the customer gains.</p>
+
+    <h3>Using the calculator</h3>
+    <p>The calculator has three inputs that drive everything else:</p>
+
+    <table class="how-table">
+      <thead><tr><th>Input</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td>Customer segment</td><td>Pre-fills the assumptions (issues/week, hours/issue, % time saved) based on the customer archetype. Three options: <strong>Small team</strong> (8 issues/wk, 1.5hr, 30% saved), <strong>Enterprise</strong> (25 issues/wk, 2hr, 40% saved), <strong>MSSP</strong> (40 issues/wk, 1.5hr, 35% saved). Derived from 4 beta interviews.</td></tr>
+        <tr><td>Customer region</td><td>Sets the security engineer salary used in the value calculation. Six options: <strong>NA</strong> ($130k), <strong>Europe</strong> ($80k), <strong>APAC High cost</strong> ($88k — AU, JP, NZ, HK, SG, KR), <strong>APAC Low cost</strong> ($14k — IN, ID, MY, TH, BD + others), <strong>Middle East</strong> ($65k), <strong>Latin America</strong> ($38k). APAC is split into two tiers because the salary gap is 6× between Australia and India, and both are significant parts of the DAST customer base. Salaries from Glassdoor 2026, weighted by the actual country distribution of 712 active DAST B2B accounts in Salesforce.</td></tr>
+        <tr><td>Deal inputs</td><td>Three fields: DAST base price (per-deal, from the opportunity), avg cost per investigation ($0.86 default), and p90 cost per investigation ($1.97 default). The cost fields drive margin calculations and credit conversion.</td></tr>
+      </tbody>
+    </table>
+
+    <p>Below the segment and region selectors, the <strong>assumptions panel</strong> shows the pre-filled values. Sales can override these if they know the account well enough — but overrides are internal only and not exposed to customers.</p>
+
+    <h3><span class="how-step-num">1</span>Calculate the value AI creates</h3>
+    <p>We estimate how much time Burp AI saves the customer's security team on vulnerability triage, then convert that time into a dollar value using their regional salary.</p>
+    <div class="how-formula">
+      <span class="label">Annual value to customer</span>
+      Issues per week × Hours per issue × % time saved with AI × 48 working weeks × Loaded hourly rate
+    </div>
+    <p>The <strong>loaded hourly rate</strong> is derived from the annual salary with a 1.3× burden multiplier (benefits, tax, overhead) divided by 1,920 working hours per year.</p>
+
+    <h3><span class="how-step-num">2</span>Set a target price at 20% of value</h3>
+    <p>We aim to capture 20% of the value created. This means the customer keeps 80% as their ROI — a strong value proposition that makes the purchase an easy decision for the buyer. We use 20% rather than the typical SaaS benchmark of 25-33% because beta customers (Amgen specifically) demonstrated they can approximate similar value using their own LLMs, which reduces switching costs and argues for a more competitive capture rate.</p>
+    <div class="how-formula">
+      <span class="label">Target price</span>
+      Annual value to customer × 20%
+    </div>
+
+    <h3><span class="how-step-num">3</span>Apply two guardrails</h3>
+    <p>The target price is constrained by a floor and a ceiling to ensure we maintain healthy margins and stay within what customers told us they'd pay.</p>
+
+    <table class="how-table">
+      <thead><tr><th>Guardrail</th><th>Formula</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td>Cost floor</td><td>Annual AI cost to serve × 2.5</td><td>Ensures at least 60% gross margin. Prevents pricing below cost for low-salary regions.</td></tr>
+        <tr><td>Acceptance ceiling</td><td>DAST base price × 15%</td><td>The upper bound of what beta customers said they'd pay. Derived from 4 interviews (range was 5-25%, with 15% as the safe middle).</td></tr>
+      </tbody>
+    </table>
+
+    <div class="how-formula">
+      <span class="label">Recommended price</span>
+      max( cost floor, min( target price, acceptance ceiling ) )<br>
+      Rounded to the nearest $50
+    </div>
+
+    <div class="how-callout">
+      <strong>Which constraint wins?</strong> The tool tells you which guardrail is binding and explains why in the recommendation rationale. The <strong>binding constraint by region table</strong> in the Internal Economics section shows at a glance which constraint drives the price for every region at the current segment settings — so you can see, for example, that NA hits the ceiling while APAC Low cost hits the floor.
+    </div>
+
+    <h3><span class="how-step-num">4</span>The recommendation card</h3>
+    <p>The orange-bordered card shows the recommended annual price, the percentage on top of the DAST base, and the new total. It also shows four key metrics:</p>
+
+    <table class="how-table">
+      <thead><tr><th>Metric</th><th>What it means</th></tr></thead>
+      <tbody>
+        <tr><td>Gross margin</td><td>Revenue minus AI cost to serve, as a percentage. Colour-coded: green (Strong, 70%+), orange (Healthy, 40-70%), red (Thin/Marginal, below 40%).</td></tr>
+        <tr><td>Value captured</td><td>What percentage of the customer's annual value we're charging. At 20% capture this should be around 20% — if it's higher, the cost floor is binding.</td></tr>
+        <tr><td>Customer keeps</td><td>The dollar value the customer retains after paying for AI. This is the ROI number for the customer.</td></tr>
+        <tr><td>Walk-away floor</td><td>The absolute minimum price that maintains 60% gross margin (= cost to serve × 2.5). <strong>Do not negotiate below this number.</strong> If sales goes below the walk-away floor, PortSwigger loses money on the AI feature for that account.</td></tr>
+      </tbody>
+    </table>
+
+    <h3><span class="how-step-num">5</span>Convert to SwigPortal credits</h3>
+    <p>The recommended annual price is converted to a monthly fair-usage credit cap for SwigPortal configuration.</p>
+
+    <div class="how-formula">
+      <span class="label">Base monthly credits</span>
+      (Annual price ÷ 12) × 2,000 credits per dollar<br><br>
+      <span class="label">Monthly credit cap (with headroom)</span>
+      Base monthly credits × 1.25<br><br>
+      <span class="label">Approx issues per month</span>
+      Monthly credit cap ÷ avg credits per investigation
+    </div>
+
+    <p>Credits per investigation are derived from the cost inputs: at $5 per 10,000 credits, each dollar of investigation cost equals 2,000 credits. A $0.86 average investigation uses ~1,720 credits; a $1.97 p90 investigation uses ~3,940 credits.</p>
+
+    <div class="how-callout">
+      <strong>25% headroom built in.</strong> The monthly cap is set at 125% of the base calculation to avoid penalising heavy adopters. Customers who get the most value from AI triage should not be the first to hit a hard wall — that creates a perverse incentive against adoption and risks churn at renewal. When a customer exhausts their monthly cap, AI features pause until the next billing cycle.
+    </div>
+
+    <h3><span class="how-step-num">6</span>Value story for the customer</h3>
+    <p>The tool generates a pre-written narrative that sales can share with the customer. It describes the time savings in the customer's own terms (issues/week, hours saved) without exposing the internal calculation or assumptions. The customer sees the conclusion ("X hours saved per year, pays for itself many times over"), not the machinery.</p>
+    <p>When the <strong>MSSP segment</strong> is selected, an additional paragraph appears highlighting that the value extends beyond internal cost savings — MSSPs can redirect freed-up hours to billable client work at $150-200/hr, making the ROI even stronger than the salary-based calculation suggests. The price calculation itself does not capture this revenue uplift, so the recommended price for MSSPs is conservative.</p>
+
+    <h3>Where the assumptions come from</h3>
+
+    <table class="how-table">
+      <thead><tr><th>Input</th><th>Source</th><th>Confidence</th></tr></thead>
+      <tbody>
+        <tr><td>Issues per week</td><td>Segment defaults from 4 beta interviews (May 2026). Small team: 8/wk, Enterprise: 25/wk, MSSP: 40/wk. Amgen had 23 high-severity issues per scan cycle; Epicor was early-stage.</td><td>Low — n=4, self-reported</td></tr>
+        <tr><td>Hours per issue</td><td>Beta interviews: Epicor 1-3hrs, Mondelez 1.5hrs on one issue, Amgen "depends on vulnerability". Small team/MSSP default 1.5hr, Enterprise 2hr.</td><td>Medium — consistent range</td></tr>
+        <tr><td>% time saved</td><td>Beta interviews: Mondelez 20-30%, Amgen >50%, Epicor hoped for 50%. All qualified as estimates. Small team 30%, Enterprise 40%, MSSP 35%.</td><td>Low — aspirational, not measured</td></tr>
+        <tr><td>Regional salary — NA</td><td>Glassdoor/Gemini: mid-level Security Engineer avg $120-138k. Default: $130k.</td><td>High — multiple sources agree</td></tr>
+        <tr><td>Regional salary — Europe</td><td>UK median £60k, Germany €75-100k, France €47-62k. Blended ~$80k USD.</td><td>High — Glassdoor + Coursera + Barclay Simpson</td></tr>
+        <tr><td>Regional salary — APAC High</td><td>Weighted from 28 accounts: AU $110k (10), JP $75k (8), NZ $85k (3), HK $65k (5), SG $95k (1), KR $55k (1). Default: $88k.</td><td>High — weighted from actual Salesforce account distribution</td></tr>
+        <tr><td>Regional salary — APAC Low</td><td>Weighted from 40 accounts: IN $10k (11), ID $12k (6), MY $20k (4), TH $18k (3), BD $8k (3) + others. Default: $14k.</td><td>High — weighted from actual Salesforce account distribution</td></tr>
+        <tr><td>Regional salary — ME</td><td>Glassdoor UAE + ERI. Default: $65k.</td><td>Medium — limited Glassdoor data, supplemented with ERI</td></tr>
+        <tr><td>Regional salary — LATAM</td><td>ERI Brazil BRL 198k (~$38k). Glassdoor data for this region was unreliable.</td><td>Medium — single primary source</td></tr>
+        <tr><td>Avg cost per investigation</td><td>Internal engineering data. Default: $0.86.</td><td>High — measured</td></tr>
+        <tr><td>p90 cost per investigation</td><td>Internal engineering data. Default: $1.97.</td><td>High — measured</td></tr>
+        <tr><td>DAST base price</td><td>Per-deal from Salesforce (avg Y1 = $28,587 across 362 won deals since Jan 2025). Override per deal.</td><td>High — actual deal data</td></tr>
+        <tr><td>Acceptance ceiling (15%)</td><td>4 beta interviews: Instil 5-10%, Mondelez 20-30% (conditional on AI testing), Epicor price-sensitive. 15% is the safe mid-point for investigation-only AI.</td><td>Medium — small sample, qualitative</td></tr>
+        <tr><td>Value capture (20%)</td><td>Conservative value-based pricing — customer keeps 80% as ROI. Set at 20% rather than the typical 25-33% because customers can approximate this value with their own LLMs (Amgen explicitly benchmarked against internal models), reducing switching costs.</td><td>Medium — informed by competitive risk from interviews</td></tr>
+        <tr><td>Credit headroom (25%)</td><td>Pricing best practice — heavy users who get the most value should not be penalised with a hard cap exactly at their expected usage. 25% buffer prevents churn risk.</td><td>Medium — industry convention</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Known limitations</h3>
+    <p>This model prices <strong>AI investigation only</strong> (triage confirmation, reproduction steps, impact analysis). Beta customers — particularly Mondelez's Charis — said investigation alone may not justify paying more. The acceptance ceiling should be revisited upward when agentic testing capabilities ship.</p>
+    <p>The "issues per week" defaults are the weakest input. They should be validated against actual AI investigation telemetry data once available. If real usage is significantly higher or lower than the defaults, the recommended prices will shift accordingly.</p>
+    <p>For <strong>APAC low-cost regions</strong>, the recommended price will almost always hit the cost floor rather than the value target. This is by design — but it means the "value story" for these customers is weaker because the price captures a higher percentage of the value created. Consider whether a different commercial approach (e.g. bundled with no separate AI line item) makes more sense for these markets.</p>
+    <p>The <strong>walk-away floor</strong> shown in the recommendation card is the minimum price that maintains 60% gross margin (= cost to serve × 2.5). If sales negotiates below this, you are losing money on the AI feature for that account. This is the hard boundary — do not go below it.</p>
+    <p>For <strong>MSSPs</strong>, the model underestimates value. It prices on internal salary savings, but MSSPs pass AI-validated findings through to clients at billable rates ($150-200/hr). The real value is increased throughput on revenue-generating work, not just cost reduction. The value story section includes an MSSP-specific note when that segment is selected, but the price calculation itself does not capture this revenue uplift — so the recommended price for MSSPs is conservative.</p>
+    <p><strong>Competitive risk:</strong> Epicor noted Burp is already 2-3× competitors (AppCheck NG). If competitors ship AI features at a lower price, the acceptance ceiling may need to drop below 15%. The model does not account for competitive pricing — it assumes PortSwigger's AI is the first-to-market option, which is currently true but may not hold.</p>
+  </div>
+
+</div>
+</div>
+
+<footer role="contentinfo">
+  Segment defaults from 4 beta interviews (May 2026). Regional salaries from Glassdoor 2026. Salary converted to loaded hourly cost at 1.3× burden / 1,920 hrs. Internal use only.
+</footer>
+
+<script>
+var WEEKS = 48;
+var TARGET_CAPTURE = 0.20;
+var CEILING_PCT = 0.15;
+var COST_FLOOR_MULT = 2.5;
+
+var REGIONS = {
+  NA:      { salary: 130000, label: 'North America',      source: 'Glassdoor/Gemini: mid-level Security Engineer avg $120-138k' },
+  Europe:  { salary: 80000,  label: 'Europe',             source: 'UK median £60k, DE €75-100k, FR €47-62k → blended ~$80k USD' },
+  APAC_HI: { salary: 88000,  label: 'APAC — High cost',   source: 'AU $110k (10), JP $75k (8), NZ $85k (3), HK $65k (5), SG $95k (1), KR $55k (1) — 28 accounts' },
+  APAC_LO: { salary: 14000,  label: 'APAC — Low cost',    source: 'IN $10k (11), ID $12k (6), MY $20k (4), TH $18k (3), BD $8k (3) + others — 40 accounts' },
+  ME:      { salary: 65000,  label: 'Middle East',        source: 'Glassdoor UAE + ERI: ~$65k USD est.' },
+  LATAM:   { salary: 38000,  label: 'Latin America',      source: 'ERI Brazil BRL 198k (~$38k); Glassdoor data unreliable' }
+};
+
+var SEGMENTS = {
+  small:      { issues: 8,  hours: 1.5, saved: 30, label: 'Small team',   desc: 'a small security team' },
+  enterprise: { issues: 25, hours: 2,   saved: 40, label: 'Enterprise',    desc: 'an enterprise AppSec team' },
+  mssp:       { issues: 40, hours: 1.5, saved: 35, label: 'MSSP',          desc: 'a pen-testing-as-a-service operation' }
+};
+
+var currentSeg = 'small';
+var currentRegion = 'NA';
+
+var els = {
+  issues: document.getElementById('issues'),
+  hours: document.getElementById('hours'),
+  saved: document.getElementById('saved'),
+  salary: document.getElementById('salary'),
+  base: document.getElementById('base'),
+  costAvg: document.getElementById('costAvg'),
+  costP90: document.getElementById('costP90'),
+  region: document.getElementById('region')
+};
+
+function fmt(n) { return (n < 0 ? '-' : '') + '$' + Math.abs(Math.round(n)).toLocaleString(); }
+function fmtPct(n) { return Math.round(n) + '%'; }
+
+function marginColor(p) { return p >= 70 ? '#0b6b78' : p >= 40 ? '#b5400f' : '#e02d4a'; }
+function marginTagLabel(p) { return p >= 70 ? 'Strong' : p >= 40 ? 'Healthy' : p >= 10 ? 'Thin' : p >= 0 ? 'Marginal' : 'Negative'; }
+function marginTagBg(p) { return p >= 70 ? '#e0f2f0' : p >= 40 ? '#fef4f0' : '#fce8eb'; }
+
+function marginIndicator(mp) {
+  var c = marginColor(mp), l = marginTagLabel(mp), b = marginTagBg(mp);
+  return '<span class="margin-tag" style="background:'+b+';color:'+c+'">'+l+'</span>' +
+    '<div class="margin-bar" role="img" aria-label="Margin: '+Math.round(mp)+'% ('+l+')" style="background:'+c+';width:'+Math.max(0,Math.min(100,mp))+'%"></div>';
+}
+
+function metric(label, val, sub, vc) {
+  return '<div class="metric" role="group" aria-label="'+label+'">' +
+    '<div class="metric-label">'+label+'</div>' +
+    '<div class="metric-val'+(vc?' '+vc:'')+'">'+val+'</div>' +
+    (sub?'<div class="metric-sub">'+sub+'</div>':'') + '</div>';
+}
+
+function applySeg(seg) {
+  var s = SEGMENTS[seg];
+  currentSeg = seg;
+  currentRegion = els.region.value;
+  els.issues.value = s.issues;
+  els.hours.value = s.hours;
+  els.saved.value = s.saved;
+  els.salary.value = REGIONS[currentRegion].salary;
+  document.querySelectorAll('.seg-option').forEach(function(btn) {
+    var active = btn.dataset.seg === seg;
+    btn.classList.toggle('active', active);
+    btn.setAttribute('aria-checked', active ? 'true' : 'false');
+  });
+  calc();
+}
+
+function applyRegion() {
+  currentRegion = els.region.value;
+  els.salary.value = REGIONS[currentRegion].salary;
+  calc();
+}
+
+function calc() {
+  var issues = +els.issues.value;
+  var hours = +els.hours.value;
+  var savedPct = +els.saved.value / 100;
+  var salary = +els.salary.value;
+  var rate = Math.round((salary * 1.3) / 1920);
+  var basePrice = +els.base.value;
+  var COST_AVG = +els.costAvg.value;
+  var COST_P90 = +els.costP90.value;
+
+  document.getElementById('issues-out').textContent = issues;
+  document.getElementById('hours-out').textContent = hours;
+  document.getElementById('saved-out').textContent = Math.round(savedPct*100) + '%';
+  document.getElementById('salary-out').textContent = '$' + salary.toLocaleString();
+
+  var weeklyManual = issues * hours;
+  var hoursSaved = weeklyManual * savedPct;
+  var annualHours = hoursSaved * WEEKS;
+  var annualValue = annualHours * rate;
+  var annualInv = issues * WEEKS;
+  var annualCost = annualInv * COST_AVG;
+
+  var costFloor = annualCost * COST_FLOOR_MULT;
+  var baseCeiling = basePrice * CEILING_PCT;
+  var valueBased = annualValue * TARGET_CAPTURE;
+  var recPrice = Math.max(costFloor, Math.min(valueBased, baseCeiling));
+  recPrice = Math.round(recPrice / 50) * 50;
+
+  var recMargin = recPrice - annualCost;
+  var recMarginPct = recPrice > 0 ? (recMargin / recPrice) * 100 : 0;
+  var recCapture = annualValue > 0 ? (recPrice / annualValue) * 100 : 0;
+  var recPctOfBase = basePrice > 0 ? (recPrice / basePrice) * 100 : 0;
+  var newTotal = basePrice + recPrice;
+
+  var binding = '';
+  if (recPrice <= costFloor + 50) {
+    binding = 'Price is at the <strong>cost floor</strong> — ensuring minimum 60% gross margin.';
+  } else if (recPrice >= baseCeiling - 50) {
+    binding = 'Price is at the <strong>acceptance ceiling</strong> (15% of DAST base) — the upper bound of what customers told us they would pay.';
+  } else {
+    binding = 'Price is set at <strong>20% of the value created</strong> — within both margin floor and customer acceptance ceiling.';
+  }
+
+  var segLabel = SEGMENTS[currentSeg].label;
+  var segDesc = SEGMENTS[currentSeg].desc;
+
+  document.getElementById('recommend-hero').innerHTML =
+    '<div class="rec-hero">' +
+      '<div class="rec-price-block">' +
+        '<div class="rec-price-label">AI add-on for this customer</div>' +
+        '<div class="rec-price-val">' + fmt(recPrice) + '<span style="font-size:18px;font-weight:600">/yr</span></div>' +
+        '<div class="rec-price-sub">' + Math.round(recPctOfBase) + '% on top of ' + fmt(basePrice) + ' base</div>' +
+        '<div class="rec-price-sub" style="margin-top:4px">New total: <strong style="color:var(--ps-navy)">' + fmt(newTotal) + '/yr</strong></div>' +
+      '</div>' +
+      '<div class="rec-rationale">' +
+        '<p><strong>Segment:</strong> ' + segLabel + ' &middot; <strong>Region:</strong> ' + REGIONS[currentRegion].label + ' (' + fmt(salary) + ' salary)</p>' +
+        '<p style="font-size:12px;color:var(--ps-text-muted)">Salary source: ' + REGIONS[currentRegion].source + '</p>' +
+        '<p>' + binding + '</p>' +
+        '<p>The customer gets ' + fmt(annualValue) + '/yr in triage time saved. At ' + fmt(recPrice) + ', they keep ' + fmtPct(100 - recCapture) + ' of that value — a clear ROI.</p>' +
+        '<div class="rec-mini-grid">' +
+          '<div class="rec-mini-stat"><div class="rec-mini-label">Gross margin</div><div class="rec-mini-val" style="color:'+marginColor(recMarginPct)+'">'+fmtPct(recMarginPct)+' '+marginTagLabel(recMarginPct)+'</div></div>' +
+          '<div class="rec-mini-stat"><div class="rec-mini-label">Value captured</div><div class="rec-mini-val">'+fmtPct(recCapture)+' of '+fmt(annualValue)+'</div></div>' +
+          '<div class="rec-mini-stat"><div class="rec-mini-label">Customer keeps</div><div class="rec-mini-val">'+fmt(annualValue - recPrice)+'/yr</div></div>' +
+          '<div class="rec-mini-stat" style="background:#fce8eb"><div class="rec-mini-label">Walk-away floor</div><div class="rec-mini-val" style="color:#e02d4a">'+fmt(costFloor)+'/yr</div></div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+  var CREDITS_PER_DOLLAR = 2000;
+  var HEADROOM = 1.25;
+  var monthlySpend = recPrice / 12;
+  var baseCreditCap = Math.round(monthlySpend * CREDITS_PER_DOLLAR);
+  var monthlyCreditCap = Math.round(baseCreditCap * HEADROOM);
+  var avgCreditsPerInv = Math.round(COST_AVG * CREDITS_PER_DOLLAR);
+  var p90CreditsPerInv = Math.round(COST_P90 * CREDITS_PER_DOLLAR);
+  var issuesPerMonthAvg = Math.floor(monthlyCreditCap / avgCreditsPerInv);
+  var issuesPerMonthP90 = Math.floor(monthlyCreditCap / p90CreditsPerInv);
+
+  document.getElementById('swigportal-cards').innerHTML =
+    metric('Monthly fair usage cap', monthlyCreditCap.toLocaleString(), 'Set this in SwigPortal. Base ' + baseCreditCap.toLocaleString() + ' + 25% headroom to avoid penalising heavy adopters') +
+    metric('Approx issues/month (avg)', issuesPerMonthAvg.toLocaleString(), 'At ~' + avgCreditsPerInv.toLocaleString() + ' credits per investigation (avg cost $' + COST_AVG.toFixed(2) + ')') +
+    metric('Approx issues/month (complex)', issuesPerMonthP90.toLocaleString(), 'At ~' + p90CreditsPerInv.toLocaleString() + ' credits per investigation (p90 cost $' + COST_P90.toFixed(2) + ')');
+
+  var weeklySavedHrs = hoursSaved.toFixed(1);
+  var annualSavedHrs = Math.round(annualHours);
+  document.getElementById('value-story').innerHTML =
+    '<p><strong>For ' + segDesc + ':</strong></p>' +
+    '<p>Your team triages roughly ' + issues + ' vulnerability findings per week, spending about ' + hours + ' hours on each. ' +
+    'Burp AI reduces that triage time by around ' + Math.round(savedPct*100) + '% per issue — providing automated confirmation, ' +
+    'reproduction steps, and impact analysis that would otherwise require manual investigation.</p>' +
+    '<p>That translates to <strong>' + weeklySavedHrs + ' hours saved per week</strong>, or <strong>' + annualSavedHrs + ' hours per year</strong> ' +
+    'of security engineering time returned to higher-value work like manual pen testing, remediation support, and coverage expansion.</p>' +
+    '<p>At <strong>' + fmt(recPrice) + '/yr</strong>, the AI add-on pays for itself many times over in recovered team capacity.</p>' +
+    (currentSeg === 'mssp' ?
+      '<p style="margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid #e8e9ee"><strong>For MSSPs specifically:</strong> ' +
+      'the value extends beyond internal cost savings. If your pen testers bill at $150-200/hr, ' +
+      Math.round(savedPct*100) + '% faster validation means ' + weeklySavedHrs + ' more billable hours per week freed up for higher-value manual testing. ' +
+      'Across ' + issues + ' client findings per week, that is increased throughput on revenue-generating work — not just a cost reduction.</p>'
+    : '');
+
+  document.getElementById('top-cards').innerHTML =
+    metric('Annual value to customer', fmt(annualValue), annualSavedHrs+' hours saved ('+fmt(salary)+' salary, '+fmt(rate)+'/hr loaded)', 'orange') +
+    metric('Annual AI cost to serve', fmt(annualCost), annualInv.toLocaleString()+' investigations at $'+COST_AVG.toFixed(2)+' each') +
+    metric('Value multiple over cost', Math.round(annualValue / annualCost)+'×', fmt(annualValue)+' value ÷ '+fmt(annualCost)+' cost', 'teal');
+
+  function pricePoint(label, pct) {
+    var p = basePrice * pct;
+    var m = p - annualCost;
+    var mp = (m / p) * 100;
+    var cap = (p / annualValue) * 100;
+    return metric(label, fmt(p)+'/yr',
+      fmtPct(mp)+' margin'+marginIndicator(mp)+'<br>Captures '+fmtPct(cap)+' of value');
+  }
+
+  document.getElementById('pricing-cards').innerHTML =
+    pricePoint('At 10% of base', 0.10) +
+    pricePoint('At 15% of base', 0.15) +
+    pricePoint('At 25% of base', 0.25);
+
+  // Change 3: Binding constraint per region summary
+  function regionRow(rKey) {
+    var r = REGIONS[rKey];
+    var rRate = Math.round((r.salary * 1.3) / 1920);
+    var rValue = issues * hours * savedPct * WEEKS * rRate;
+    var rTarget = rValue * TARGET_CAPTURE;
+    var rFloor = annualCost * COST_FLOOR_MULT;
+    var rCeiling = basePrice * CEILING_PCT;
+    var rPrice = Math.max(rFloor, Math.min(rTarget, rCeiling));
+    rPrice = Math.round(rPrice / 50) * 50;
+    var constraint = rPrice <= rFloor + 50 ? 'Cost floor' : rPrice >= rCeiling - 50 ? 'Ceiling (15%)' : 'Value (20%)';
+    var cColor = constraint === 'Cost floor' ? '#e02d4a' : constraint === 'Ceiling (15%)' ? '#b5400f' : '#0b6b78';
+    return '<tr><td style="font-weight:600;color:var(--ps-navy)">'+r.label+'</td><td style="text-align:right">'+fmt(r.salary)+'</td><td style="text-align:right">'+fmt(rValue)+'</td><td style="text-align:right">'+fmt(rPrice)+'</td><td style="color:'+cColor+';font-weight:600">'+constraint+'</td></tr>';
+  }
+
+  var regionSummaryEl = document.getElementById('region-summary');
+  if (regionSummaryEl) {
+    regionSummaryEl.innerHTML =
+      '<table style="width:100%;border-collapse:collapse;font-size:14px;margin-top:0.75rem">' +
+      '<thead><tr><th style="text-align:left;font-weight:600;color:var(--ps-text-muted, #4a4d5e);font-size:12px;text-transform:uppercase;letter-spacing:0.3px;padding:8px 10px;border-bottom:2px solid var(--ps-border)">Region</th>' +
+      '<th style="text-align:right;font-weight:600;color:var(--ps-text-muted, #4a4d5e);font-size:12px;text-transform:uppercase;letter-spacing:0.3px;padding:8px 10px;border-bottom:2px solid var(--ps-border)">Salary</th>' +
+      '<th style="text-align:right;font-weight:600;color:var(--ps-text-muted, #4a4d5e);font-size:12px;text-transform:uppercase;letter-spacing:0.3px;padding:8px 10px;border-bottom:2px solid var(--ps-border)">Value created</th>' +
+      '<th style="text-align:right;font-weight:600;color:var(--ps-text-muted, #4a4d5e);font-size:12px;text-transform:uppercase;letter-spacing:0.3px;padding:8px 10px;border-bottom:2px solid var(--ps-border)">Rec. price</th>' +
+      '<th style="text-align:left;font-weight:600;color:var(--ps-text-muted, #4a4d5e);font-size:12px;text-transform:uppercase;letter-spacing:0.3px;padding:8px 10px;border-bottom:2px solid var(--ps-border)">Binding constraint</th></tr></thead><tbody>' +
+      regionRow('NA') + regionRow('Europe') + regionRow('APAC_HI') + regionRow('APAC_LO') + regionRow('ME') + regionRow('LATAM') +
+      '</tbody></table>';
+  }
+
+  var refPrice = recPrice;
+  var beAvg = Math.floor(refPrice / COST_AVG);
+  var beP90 = Math.floor(refPrice / COST_P90);
+  var msspYearly = 40 * WEEKS;
+  var msspHeadroom = beAvg - msspYearly;
+
+  document.getElementById('be-cards').innerHTML =
+    metric('Break-even (avg cost)', beAvg.toLocaleString(), 'investigations/yr — '+Math.round(beAvg/WEEKS)+'/wk') +
+    metric('Break-even (p90 cost)', beP90.toLocaleString(), 'investigations/yr — '+Math.round(beP90/WEEKS)+'/wk') +
+    metric('MSSP headroom', (msspHeadroom>0?'+':'')+msspHeadroom.toLocaleString(),
+      msspHeadroom>0 ? 'spare versus 40/wk MSSP' : 'Over break-even at 40/wk',
+      msspHeadroom>0 ? 'teal' : '');
+
+  var insight = 'At the recommended '+fmt(refPrice)+'/yr, a customer needs more than <strong>'+beAvg.toLocaleString()+'</strong> investigations/yr to erode margin at avg cost. ';
+  if (msspHeadroom > 0) {
+    insight += 'All segment archetypes operate within this ceiling.';
+  } else {
+    insight += '<strong style="color:var(--ps-crimson)">Warning:</strong> the MSSP archetype at 40 issues/wk ('+msspYearly.toLocaleString()+'/yr) exceeds break-even. Consider a volume tier or usage cap.';
+  }
+  document.getElementById('be-insight').innerHTML = insight;
+}
+
+// Tabs
+document.querySelectorAll('.tab-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.tab-btn').forEach(function(b) {
+      b.classList.remove('active');
+      b.setAttribute('aria-selected', 'false');
+      b.setAttribute('tabindex', '-1');
+    });
+    document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+    this.classList.add('active');
+    this.setAttribute('aria-selected', 'true');
+    this.setAttribute('tabindex', '0');
+    document.getElementById(this.getAttribute('aria-controls')).classList.add('active');
+  });
+  btn.addEventListener('keydown', function(e) {
+    var tabs = Array.from(document.querySelectorAll('.tab-btn'));
+    var idx = tabs.indexOf(this);
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+      e.preventDefault();
+      var next = e.key === 'ArrowRight' ? (idx + 1) % tabs.length : (idx - 1 + tabs.length) % tabs.length;
+      tabs[next].click();
+      tabs[next].focus();
+    }
+  });
+});
+
+// Segment buttons
+document.querySelectorAll('.seg-option').forEach(function(btn) {
+  btn.addEventListener('click', function() { applySeg(this.dataset.seg); });
+});
+
+// Region selector
+els.region.addEventListener('change', applyRegion);
+
+// Recalc on any input change
+Object.values(els).forEach(function(el) { el.addEventListener('input', calc); });
+
+// Init
+applySeg('small');
+</script>
+</body>
+</html>
